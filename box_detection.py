@@ -57,15 +57,15 @@ def remove_boxes(img):
     cv2.imwrite("fin2.jpg",fin2)
     return fin2
 
-def get_offset_val(x1,x3,y1,y3,height_scale,width_scale):
+def get_offset_val(x1,x3,y1,y3,height_scale,width_scale,idx):
     off_set_dict = {
-
-        "x1_offset" : int(round(x1/2)),
+        "idx" : idx,
+        "x1_offset" : int(round(x1)),
         "x2_offset" : int(round(0)),
-        "x3_offset" : int(round((x3 - x1)/2)),
+        "x3_offset" : int(round((x3 - x1))),
         "x4_offset" : int(round(0)),
-        "y1_offset" : int(round(y1/2)),
-        "y2_offset" : int(round((y3 - y1)/2)),
+        "y1_offset" : int(round(y1)),
+        "y2_offset" : int(round((y3 - y1))),
         "y3_offset" : int(round(0)),
         "y4_offset" : int(round(0))
 
@@ -149,9 +149,9 @@ def box_extraction(img_for_box_extraction_path, cropped_dir_path):
             idx += 1
             new_img = img_org[y:y+h, x:x+w]
             cv2.rectangle(img_cpy, (x, y), (x+w, y+h), (0, 255, 0), 3)
-            cv2.rectangle(img_template, (x-3, y-3), (x+w+2, y+h+2), (255, 255, 255), -1)
+            cv2.rectangle(img_template, (x-3, y-3), (x+w+2, y+h+1), (255, 255, 255), -1)
             cv2.imwrite(cropped_dir_path+str(idx) + '.png', new_img)
-            print(get_offset_val(x,x+w,y,y+h,height_scale,width_scale))
+            print(get_offset_val(x,x+w,y,y+h,height_scale,width_scale,idx))
     
     x1 = 340
     x2 = 0
@@ -170,4 +170,4 @@ def box_extraction(img_for_box_extraction_path, cropped_dir_path):
 
     
     
-box_extraction("dec_form_squared.jpg", "./Cropped/")
+box_extraction("dec_form_squared_cropped.jpg", "./Cropped/")
