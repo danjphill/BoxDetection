@@ -1,12 +1,26 @@
 from __future__ import division
 import cv2
 import numpy as np
+import pytesseract
+
+TESSDATA_PATH = "../CariPay/ocr/src/tessdata/"
 
 def remove_negative(value):
     if(value < 0):
         return 0
     else:
         return value
+
+def clean_box_with_text(img):
+    img_inv = cv2.bitwise_not(img)
+    th2 = cv2.adaptiveThreshold(img_inv,255,cv2.ADAPTIVE_THRESH_MEAN_C,cv2.THRESH_BINARY,11,2)
+    cv2.imwrite("th2.jpg",th2)
+    cv2.cvtColor(th2, cv2.COLOR_GRAY2BGR)
+    return th2  
+
+def ocr_img(img):
+    return tesseract_process_img(img, 7, 300)
+
 
 def get_crop_vals(
         x1,
@@ -36,6 +50,10 @@ def get_crop_vals(
                     int(result_y3))]
     return result
 
+def tesseract_process_img(img, psm, dpi):
+    config_str = '--psm {0} --dpi {1} --tessdata-dir "{2}"'.format(
+        psm, dpi, TESSDATA_PATH)
+    return pytesseract.image_to_string(img, config=config_str)
 
 def remove_text(img):
     upper_red = np.array([0,0,255])
@@ -57,9 +75,9 @@ def remove_boxes(img):
     cv2.imwrite("fin2.jpg",fin2)
     return fin2
 
-def get_offset_val(x1,x3,y1,y3,height_scale,width_scale,idx):
+def get_offset_val(x1,x3,y1,y3,height_scale,width_scale,title):
     off_set_dict = {
-        "idx" : idx,
+        "title" : title,
         "x1_offset" : int(round(x1)),
         "x2_offset" : int(round(0)),
         "x3_offset" : int(round((x3 - x1))),
@@ -110,6 +128,8 @@ def box_extraction(img_for_box_extraction_path, cropped_dir_path):
     print "height_scale : {},width_scale : {}, height : {}, width : {}".format(height_scale,width_scale,doc_height,doc_width)
     img = remove_text(img_org)
 
+    image_with_boxes_and_text = clean_box_with_text(img)
+
     (thresh, img_bin) = cv2.threshold(img, 128, 255,
                                       cv2.THRESH_BINARY | cv2.THRESH_OTSU)  
     img_bin = 255-img_bin  
@@ -147,11 +167,17 @@ def box_extraction(img_for_box_extraction_path, cropped_dir_path):
         x, y, w, h = cv2.boundingRect(c)
         if w > 200 and h < 100:
             idx += 1
+            x = x +3
+            y = y +3 
+            w = w -6 
+            h = h -6 
             new_img = img_org[y:y+h, x:x+w]
+            cropped_text = image_with_boxes_and_text[y:y+h, x:x+w]
             cv2.rectangle(img_cpy, (x, y), (x+w, y+h), (0, 255, 0), 3)
             cv2.rectangle(img_template, (x-3, y-3), (x+w+2, y+h+1), (255, 255, 255), -1)
             cv2.imwrite(cropped_dir_path+str(idx) + '.png', new_img)
-            print(get_offset_val(x,x+w,y,y+h,height_scale,width_scale,idx))
+            cv2.imwrite(cropped_dir_path+str(idx) + '_text.png', cropped_text)
+            print(get_offset_val(x,x+w,y,y+h,height_scale,width_scale,ocr_img(cropped_text)))
     
     x1 = 340
     x2 = 0
@@ -170,4 +196,4 @@ def box_extraction(img_for_box_extraction_path, cropped_dir_path):
 
     
     
-box_extraction("dec_form_squared_cropped.jpg", "./Cropped/")
+box_extraction("dec_form_squared_cropped_text.jpg", "./Cropped/")
