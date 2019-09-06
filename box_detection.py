@@ -21,51 +21,58 @@ def clean_box_with_text(img):
 def ocr_img(img):
     return tesseract_process_img(img, 7, 300)
 
+def get_tabs_as_spaces(tabs_sapces):
+    spaces_string = ""
+    for i in range(tabs_sapces):
+        spaces_string = spaces_string + "  "
+    return spaces_string
+
+
 def generate_yaml_file(name,fields_dict,info_dict):
     yaml_file = open("{}.yaml".format(name),"w")
     yaml_file.write("company: {}".format(info_dict["company"]))
     yaml_file.write("\n")
     yaml_file.write("scale:")
     yaml_file.write("\n")
-    yaml_file.write("\theight: {}".format(info_dict["height"]))
+    yaml_file.write("{}height: {}".format(get_tabs_as_spaces(1),info_dict["height"]))
     yaml_file.write("\n")
-    yaml_file.write("\twidth: {}".format(info_dict["width"]))
+    yaml_file.write("{}width: {}".format(get_tabs_as_spaces(1),info_dict["width"]))
     yaml_file.write("\n")
     yaml_file.write("fields:")
     yaml_file.write("\n")
 
     for key in fields_dict:
-        yaml_file.write("\t{}:".format(key))
+        yaml_file.write("{}{}:".format(get_tabs_as_spaces(1),key))
         yaml_file.write("\n")
-        yaml_file.write("\t\tcrop_vals:".format(key))
+        yaml_file.write("{}crop_vals:".format(get_tabs_as_spaces(2),key))
         yaml_file.write("\n")
-        yaml_file.write("\t\t\tx1: {}".format(fields_dict[key]["x1_offset"]))
+        yaml_file.write("{}x1: {}".format(get_tabs_as_spaces(3),fields_dict[key]["x1_offset"]))
         yaml_file.write("\n")
-        yaml_file.write("\t\t\tx2: {}".format(fields_dict[key]["x2_offset"]))
+        yaml_file.write("{}x2: {}".format(get_tabs_as_spaces(3),fields_dict[key]["x2_offset"]))
         yaml_file.write("\n")
-        yaml_file.write("\t\t\tx3: {}".format(fields_dict[key]["x3_offset"]))
+        yaml_file.write("{}x3: {}".format(get_tabs_as_spaces(3),fields_dict[key]["x3_offset"]))
         yaml_file.write("\n")
-        yaml_file.write("\t\t\tx4: {}".format(fields_dict[key]["x4_offset"]))
+        yaml_file.write("{}x4: {}".format(get_tabs_as_spaces(3),fields_dict[key]["x4_offset"]))
         yaml_file.write("\n")
-        yaml_file.write("\t\t\ty1: {}".format(fields_dict[key]["y1_offset"]))
+        yaml_file.write("{}y1: {}".format(get_tabs_as_spaces(3),fields_dict[key]["y1_offset"]))
         yaml_file.write("\n")
-        yaml_file.write("\t\t\ty2: {}".format(fields_dict[key]["y2_offset"]))
+        yaml_file.write("{}y2: {}".format(get_tabs_as_spaces(3),fields_dict[key]["y2_offset"]))
         yaml_file.write("\n")
-        yaml_file.write("\t\t\ty3: {}".format(fields_dict[key]["y3_offset"]))
+        yaml_file.write("{}y3: {}".format(get_tabs_as_spaces(3),fields_dict[key]["y3_offset"]))
         yaml_file.write("\n")
-        yaml_file.write("\t\t\ty4: {}".format(fields_dict[key]["y4_offset"]))
+        yaml_file.write("{}y4: {}".format(get_tabs_as_spaces(3),fields_dict[key]["y4_offset"]))
         yaml_file.write("\n")
-        yaml_file.write("\t\tclean_vals:")
+        yaml_file.write("{}clean_vals:".format(get_tabs_as_spaces(2)))
         yaml_file.write("\n")
-        yaml_file.write("\t\t\tintensity: 0")
+        yaml_file.write("{}intensity: 0".format(get_tabs_as_spaces(3)))
         yaml_file.write("\n")
-        yaml_file.write("\t\t\ttype: numbers")
+        yaml_file.write("{}type: numbers".format(get_tabs_as_spaces(3)))
         yaml_file.write("\n")
-        yaml_file.write("\t\ttesseract_vals:")
+        yaml_file.write("{}tesseract_vals:".format(get_tabs_as_spaces(2)))
         yaml_file.write("\n")
-        yaml_file.write("\t\t\tpsm: 7")
+        yaml_file.write("{}psm: 7".format(get_tabs_as_spaces(3)))
         yaml_file.write("\n")
-        yaml_file.write("\t\t\tdpi: 300")
+        yaml_file.write("{}dpi: 300".format(get_tabs_as_spaces(3)))
         yaml_file.write("\n")
     yaml_file.close()
     return "config file sucessfully generated"
@@ -126,14 +133,14 @@ def remove_boxes(img):
 def get_offset_val(x1,x3,y1,y3,height_scale,width_scale,title):
     off_set_dict = {
         "title" : title,
-        "x1_offset" : int(round(x1/2)),
-        "x2_offset" : int(round(0/2)),
-        "x3_offset" : int(round((x3 - x1)/2)),
-        "x4_offset" : int(round(0/2)),
-        "y1_offset" : int(round(y1/2)),
-        "y2_offset" : int(round((y3 - y1)/2)),
-        "y3_offset" : int(round(0/2)),
-        "y4_offset" : int(round(0/2))
+        "x1_offset" : int(round(x1)),
+        "x2_offset" : int(round(0)),
+        "x3_offset" : int(round((x3 - x1))),
+        "x4_offset" : int(round(0)),
+        "y1_offset" : int(round(y1)),
+        "y2_offset" : int(round((y3 - y1))),
+        "y3_offset" : int(round(0)),
+        "y4_offset" : int(round(0))
 
     }
     return off_set_dict
@@ -221,7 +228,7 @@ def box_extraction(img_for_box_extraction_path, cropped_dir_path):
     idx = 0
     for c in contours:
         x, y, w, h = cv2.boundingRect(c)
-        if w > 200 and h < 100:
+        if w > 150 and h < 100:
             idx += 1
             x = x +3
             y = y +3 
@@ -231,25 +238,25 @@ def box_extraction(img_for_box_extraction_path, cropped_dir_path):
             cropped_text = image_with_boxes_and_text[y:y+h, x:x+w]
             field_name = ocr_img(cropped_text)
             cv2.rectangle(img_cpy, (x, y), (x+w, y+h), (0, 255, 0), 3)
-            cv2.rectangle(img_template, (x-3, y-3), (x+w+2, y+h+1), (255, 255, 255), -1)
+            cv2.rectangle(img_template, (x-5, y-5), (x+w+5, y+h+5), (255, 255, 255), -1)
             cv2.imwrite(cropped_dir_path+str(idx) + '{}.png'.format(field_name), new_img)
             cv2.imwrite(cropped_dir_path+str(idx) + '_text_{}.png'.format(field_name), cropped_text)
-            # if (field_name != "ignore"):
-            fields_dict[field_name+str(idx)] = get_offset_val(x,x+w,y,y+h,height_scale,width_scale,field_name)
-    # x1 = 340
-    # x2 = 0
-    # x3 = 240
-    # x4 = 0   
-    # y1 = 735
-    # y2 = 40
-    # y3 = 0
-    # y4 = 0
-    # print(fields_dict)
-    # result = get_crop_vals(x1,x2,x3,x4,y1,y2,y3,y4,1/width_scale,1/height_scale)
-    # print result
-    # cv2.rectangle(img_cpy, (result[0], result[1]), (result[2], result[3]), (255, 0, 0), 3)
+            if (field_name != "ignore"):
+                fields_dict[field_name] = get_offset_val(x,x+w,y,y+h,height_scale,width_scale,field_name)
+    x1 = 340
+    x2 = 0
+    x3 = 240
+    x4 = 0   
+    y1 = 735
+    y2 = 40
+    y3 = 0
+    y4 = 0
+    print(fields_dict)
+    result = get_crop_vals(x1,x2,x3,x4,y1,y2,y3,y4,width_scale,height_scale)
+    print result
+    cv2.rectangle(img_cpy, (result[0], result[1]), (result[2], result[3]), (255, 0, 0), 3)
     cv2.imwrite("img_cpy" + '.png', img_cpy)
     cv2.imwrite("img_template" + '.png', img_template)
     print(generate_yaml_file(yaml_file_name,fields_dict,info_dict))
     
-box_extraction("dec_form_squared_cropped_text.jpg", "./Cropped/")
+box_extraction("small_dec_template.jpg", "./Cropped/")
